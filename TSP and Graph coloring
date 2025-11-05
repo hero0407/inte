@@ -1,0 +1,73 @@
+# 🌍 Travelling Salesman Problem (TSP)
+from itertools import permutations
+
+def travelling_salesman(graph, start):
+    V = len(graph)
+    cities = [i for i in range(V) if i != start]
+    min_path_cost = float('inf')  # Start with infinity
+
+    # Try all possible routes
+    for route in permutations(cities):
+        cost = 0
+        k = start
+
+        # Calculate path cost
+        for city in route:
+            cost += graph[k][city]
+            k = city
+
+        # Return to start city
+        cost += graph[k][start]
+
+        # Update minimum cost
+        min_path_cost = min(min_path_cost, cost)
+
+    return min_path_cost
+
+
+# Example graph: cost[i][j] is distance from city i to j
+graph = [
+    [0, 10, 15, 20],
+    [10, 0, 35, 25],
+    [15, 35, 0, 30],
+    [20, 25, 30, 0]
+]
+
+start_city = 0
+print("Minimum TSP Path Cost:", travelling_salesman(graph, start_city))
+
+# ----------------------------------------------------------
+# 🗺️ Map Coloring Problem
+
+colors = ['Red', 'Blue', 'Green', 'Yellow']
+states = ['Andhra', 'Karnataka', 'TamilNadu', 'Kerala']
+
+neighbors = {
+    'Andhra': ['Karnataka', 'TamilNadu'],
+    'Karnataka': ['Andhra', 'TamilNadu', 'Kerala'],
+    'TamilNadu': ['Andhra', 'Karnataka', 'Kerala'],
+    'Kerala': ['Karnataka', 'TamilNadu']
+}
+
+state_colors = {}
+
+# Check if a color is valid for a state
+def is_valid(state, color):
+    for neighbor in neighbors[state]:
+        if state_colors.get(neighbor) == color:
+            return False
+    return True
+
+# Assign colors
+def map_coloring():
+    for state in states:
+        for color in colors:
+            if is_valid(state, color):
+                state_colors[state] = color
+                break
+
+    print("\nAssigned Colors to Each State:")
+    for state, color in state_colors.items():
+        print(f"{state}: {color}")
+
+map_coloring()
