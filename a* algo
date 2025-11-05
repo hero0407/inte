@@ -1,0 +1,60 @@
+# A* Algorithm (Simplified & Easy to Understand)
+
+def aStar(start, goal):
+    open_set = set([start])   # Nodes to explore
+    closed_set = set()        # Nodes already explored
+    g = {start: 0}            # Distance from start
+    parent = {start: None}    # To track path
+
+    while open_set:
+        # Pick node with lowest (g + heuristic)
+        current = min(open_set, key=lambda x: g[x] + heuristic[x])
+
+        # If goal found, reconstruct the path
+        if current == goal:
+            path = []
+            while current:
+                path.append(current)
+                current = parent[current]
+            path.reverse()
+            print("Path found:", " -> ".join(path))
+            return path
+
+        # Move current node to closed set
+        open_set.remove(current)
+        closed_set.add(current)
+
+        # Explore neighbors
+        for (neighbor, cost) in graph.get(current, []):
+            if neighbor in closed_set:
+                continue
+
+            new_cost = g[current] + cost
+
+            if neighbor not in open_set or new_cost < g.get(neighbor, float('inf')):
+                g[neighbor] = new_cost
+                parent[neighbor] = current
+                open_set.add(neighbor)
+
+    print("Path does not exist!")
+    return None
+
+
+# Heuristic values (Estimated distance to goal)
+heuristic = {
+    'A': 4,
+    'B': 2,
+    'C': 1,
+    'D': 0
+}
+
+# Graph definition: (Node: [(Neighbor, Cost), ...])
+graph = {
+    'A': [('B', 1), ('C', 3)],
+    'B': [('A', 1), ('D', 4)],
+    'C': [('A', 3), ('D', 1)],
+    'D': [('B', 4), ('C', 1)]
+}
+
+# Run A* Algorithm
+aStar('A', 'D')
