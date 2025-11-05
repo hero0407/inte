@@ -1,0 +1,12 @@
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report
+
+iris = load_iris()
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.3)
+svm = SVC(kernel='linear').fit(X_train, y_train)
+y_pred = svm.predict(X_test)
+
+print("Accuracy:", svm.score(X_test, y_test))
+print(classification_report(y_test, y_pred))
