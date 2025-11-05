@@ -1,0 +1,50 @@
+# BFS Function
+def bfs(start):
+    visited = []
+    queue = [start]
+
+    while queue:
+        node = queue.pop(0)
+        if node not in visited:
+            visited.append(node)
+            for neighbor in adjList[node]:
+                if neighbor not in visited and neighbor not in queue:
+                    queue.append(neighbor)
+    return visited
+
+
+# DFS Function
+def dfs(start):
+    visited = []
+    stack = [start]
+
+    while stack:
+        node = stack.pop()
+        if node not in visited:
+            visited.append(node)
+            stack.extend(reversed(adjList[node]))  # Reverse for correct order
+    return visited
+
+
+# Input section
+adjList = {}
+n = int(input("Enter number of nodes: "))
+print("Enter node names:")
+nodes = [input(f"Node {i+1}: ") for i in range(n)]
+
+# Initialize adjacency list
+for node in nodes:
+    adjList[node] = []
+
+e = int(input("Enter number of edges: "))
+print("Enter edges (e.g. A B for edge between A and B):")
+for _ in range(e):
+    u, v = input().split()
+    adjList[u].append(v)
+    adjList[v].append(u)  # Undirected graph
+
+start = input("Enter the start node: ")
+
+# Output both traversals
+print("\nDFS Traversal Path:", " --> ".join(dfs(start)))
+print("BFS Traversal Path:", " --> ".join(bfs(start)))
