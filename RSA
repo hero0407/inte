@@ -1,0 +1,17 @@
+from Crypto.PublicKey import RSA
+from Crypto.Util.number import inverse
+import base64
+
+n = <your_n_here>
+e = <your_e_here>
+p = <your_p_here>
+q = <your_q_here>
+
+phi_n = (p - 1) * (q - 1)
+d = inverse(e, phi_n)
+
+key = RSA.construct((n, e, d, p, q))
+
+fn = "private.pem"
+with open(fn, "wb") as f:
+    f.write(key.export_key())
