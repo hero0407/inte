@@ -1,0 +1,70 @@
+import pandas as pd, math, itertools
+from collections import Counter
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+import matplotlib.pyplot as plt
+
+# ---------------- DATA ----------------
+df = pd.DataFrame({
+    "Outlook":["Sunny","Sunny","Overcast","Rain","Rain","Rain","Overcast","Sunny","Sunny","Rain","Sunny","Overcast","Overcast","Rain"],
+    "Temperature":["Hot","Hot","Hot","Mild","Cool","Cool","Cool","Mild","Cool","Mild","Mild","Mild","Hot","Mild"],
+    "Humidity":["High","High","High","High","Normal","Normal","Normal","High","Normal","Normal","Normal","High","Normal","High"],
+    "Wind":["Weak","Strong","Weak","Weak","Weak","Strong","Strong","Weak","Weak","Weak","Strong","Strong","Weak","Strong"],
+    "Play Tennis":["No","No","Yes","Yes","Yes","No","Yes","No","Yes","Yes","Yes","Yes","Yes","No"]
+})
+
+# ---------------- ID3 FUNCTIONS ----------------
+def entropy(col):
+    c = Counter(col); t = len(col)
+    return -sum((n/t)*math.log2(n/t) for n in c.values())
+
+def info_gain(df, attr, target):
+    total = entropy(df[target])
+    return total - sum((len(sub)/len(df)) * entropy(sub[target])
+                       for v, sub in df.groupby(attr))
+
+def id3(df, target, attrs):
+    if len(df[target].unique()) == 1: return df[target].iloc[0]
+    if not attrs: return df[target].mode()[0]
+    best = max(attrs, key=lambda a: info_gain(df, a, target))
+    return {best:{v:id3(sub, target, [a for a in attrs if a!=best])
+                  for v, sub in df.groupby(best)}}
+
+def classify(row, tree):
+    if not isinstance(tree, dict): return tree
+    attr = next(iter(tree))
+    branch = tree[attr].get(row[attr])
+    return classify(row, branch)
+
+# ---------------- BUILD BOTH MODELS ----------------
+id3_tree = id3(df, "Play Tennis", list(df.columns[:-1]))
+
+X = pd.get_dummies(df.drop("Play Tennis", axis=1))
+y = df["Play Tennis"]
+sk_model = DecisionTreeClassifier(criterion="entropy").fit(X, y)
+
+# ---------------- TEST ----------------
+test = pd.DataFrame({
+    "Outlook":["Rain","Sunny"],
+    "Temperature":["Mild","Hot"],
+    "Humidity":["High","High"],
+    "Wind":["Weak","Weak"]
+})
+
+test["ID3"] = test.apply(classify, axis=1, args=(id3_tree,))
+
+# Prepare test data for sklearn model by dropping the 'ID3' column (if present) and one-hot encoding
+test_for_sklearn = test.drop(columns=["ID3"], errors='ignore')
+dummy_test = pd.get_dummies(test_for_sklearn)
+
+# Align columns of dummy_test with X (training data) to handle missing categories
+dummy_test = dummy_test.reindex(columns=X.columns, fill_value=0)
+
+test["Sklearn"] = sk_model.predict(dummy_test)
+
+print("\nID3 Tree:", id3_tree, "\n")
+print(test)
+
+# ---------------- PLOT SKLEARN TREE ----------------
+plt.figure(figsize=(10,6))
+plot_tree(sk_model, feature_names=X.columns, class_names=sk_model.classes_, filled=True)
+plt.show()
